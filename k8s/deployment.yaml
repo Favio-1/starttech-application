@@ -27,25 +27,48 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            - name: REDIS_HOST
-              valueFrom:
-                secretKeyRef:
-                  name: backend-secrets
-                  key: redis-host
+            - name: PORT
+              value: "8080"
+            - name: DB_NAME
+              value: "much_todo_db"
             - name: MONGO_URI
               valueFrom:
                 secretKeyRef:
                   name: backend-secrets
                   key: mongo-uri
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: jwt-secret-key
+            - name: ENABLE_CACHE
+              value: "true"
+            # REDIS_ADDR must be host:port (e.g. <elasticache-endpoint>:6379) —
+            # this is what internal/config actually reads, NOT REDIS_HOST.
+            - name: REDIS_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: redis-addr
+            # The app's own CORS allow-list — include your CloudFront domain
+            # here once it's known, comma-separated if more than one.
+            - name: ALLOWED_ORIGINS
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: allowed-origins
           readinessProbe:
             httpGet:
-              path: /api/v1/health
+              # Real backend route is /health, not /api/v1/health — this
+              # probe hits the pod directly, bypassing CloudFront entirely,
+              # so no /api prefix applies here.
+              path: /health
               port: 8080
             initialDelaySeconds: 5
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /api/v1/health
+              path: /health
               port: 8080
             initialDelaySeconds: 15
             periodSeconds: 20

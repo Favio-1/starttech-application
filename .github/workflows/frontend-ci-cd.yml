@@ -38,6 +38,10 @@ jobs:
 
       - name: Build static site
         working-directory: frontend
+        # /api is routed by CloudFront to the backend ALB (see the cdn
+        # module) which strips the /api prefix before it reaches the app.
+        env:
+          VITE_API_BASE_URL: /api
         run: npm run build
 
       - name: Configure AWS credentials
@@ -48,8 +52,9 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Sync build to S3
+        # Vite outputs to dist/, not build/
         working-directory: frontend
-        run: aws s3 sync build/ s3://${{ secrets.FRONTEND_BUCKET_NAME }} --delete
+        run: aws s3 sync dist/ s3://${{ secrets.FRONTEND_BUCKET_NAME }} --delete
 
       - name: Invalidate CloudFront cache
         run: |

@@ -22,21 +22,26 @@ scripts/            # Deploy, health-check, rollback helpers
 
 ## Local development
 
-**Frontend**
+**Frontend** (Vite + React + TypeScript)
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
-**Backend**
+**Backend** (Go, Gin) — entry point is `cmd/api/main.go`
 ```bash
 cd backend
-go run main.go
+go run ./cmd/api
 ```
-Set these environment variables locally (see `k8s/deployment.yaml` for the production equivalents):
-- `REDIS_HOST`
-- `MONGO_URI`
+Copy `.env.example` to `.env` in `backend/` and fill in real values. Key variables the app actually reads (see `internal/config`):
+- `PORT` (defaults to 8080)
+- `MONGO_URI`, `DB_NAME`
+- `JWT_SECRET_KEY`, `JWT_EXPIRATION_HOURS`
+- `ENABLE_CACHE`, `REDIS_ADDR` (host:port, e.g. `localhost:6379` — **not** `REDIS_HOST`)
+- `ALLOWED_ORIGINS` (comma-separated, for CORS)
+
+Real backend routes have **no `/api` prefix**: `/health`, `/auth/*`, `/tasks/*`, `/users/*`. In production, CloudFront's `/api/*` rule forwards to the ALB and a CloudFront Function strips the `/api` prefix before it reaches the app — see `starttech-infra/terraform/modules/cdn/main.tf`.
 
 ## Deploying manually
 
@@ -68,9 +73,16 @@ Two workflows, triggered by path:
 
 These values come from the `starttech-infra` repo's Terraform outputs (`terraform output frontend_bucket_id`, `terraform output cloudfront_distribution_id`, etc).
 
+### Kubernetes secret (manual, one-time)
+
+`deployment.yaml` reads Mongo/Redis/JWT config from a Secret named `backend-secrets`, which is **not** created by CI (secrets in git are a bad idea). Copy `k8s/secret.yaml.example` to `k8s/secret.yaml`, fill in real values, and apply once:
+```bash
+kubectl apply -f k8s/secret.yaml
+```
+
 ## Health check
 
-The backend exposes `GET /api/v1/health` for readiness/liveness probes and the ALB target group health check.
+The backend exposes `GET /health` (no `/api` prefix — see note above) for readiness/liveness probes and the ALB target group health check. Through CloudFront, reach it at `/api/health`.
 
 ## Kubernetes notes
 

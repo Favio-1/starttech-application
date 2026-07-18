@@ -5,13 +5,14 @@
 # reports success/failure. Useful right after a deploy, or as a CI gate.
 #
 # Usage:
-#   ./scripts/health-check.sh https://<cloudfront-domain>
-#   ./scripts/health-check.sh http://<alb-dns-name>
+#   ./scripts/health-check.sh https://<cloudfront-domain>   # checks /api/health (CloudFront strips /api)
+#   ./scripts/health-check.sh http://<alb-dns-name>          # checks /health directly (no /api prefix)
 #
 set -euo pipefail
 
 BASE_URL="${1:?Usage: $0 <base-url>}"
-ENDPOINT="${BASE_URL%/}/api/v1/health"
+HEALTH_PATH="${4:-/health}"
+ENDPOINT="${BASE_URL%/}${HEALTH_PATH}"
 MAX_ATTEMPTS="${2:-5}"
 SLEEP_SECONDS="${3:-10}"
 

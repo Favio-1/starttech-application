@@ -1,12 +1,16 @@
-# Node / React
+# Node / React (Vite)
 node_modules/
-frontend/build/
+frontend/dist/
 frontend/.env
 npm-debug.log*
 
 # Go
-backend/server
+backend/cmd/api/server
 *.exe
+
+# Backend env / secrets
+backend/.env
+k8s/secret.yaml
 
 # OS/editor
 .DS_Store

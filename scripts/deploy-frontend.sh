@@ -19,10 +19,10 @@ echo ">> Installing dependencies..."
 npm ci
 
 echo ">> Building..."
-npm run build
+VITE_API_BASE_URL=/api npm run build
 
-echo ">> Syncing build/ to s3://$BUCKET_NAME ..."
-aws s3 sync build/ "s3://$BUCKET_NAME" --delete
+echo ">> Syncing dist/ to s3://$BUCKET_NAME ..."
+aws s3 sync dist/ "s3://$BUCKET_NAME" --delete
 
 echo ">> Invalidating CloudFront distribution $DISTRIBUTION_ID ..."
 aws cloudfront create-invalidation \
