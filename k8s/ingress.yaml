@@ -1,0 +1,26 @@
+# This Ingress is provided to satisfy the "alb ingress class" option in the
+# assessment spec. Since the ALB is already provisioned explicitly in
+# Terraform (starttech-infra/terraform/alb.tf) targeting the NodePort in
+# service.yaml, this Ingress is optional — it's here in case the AWS Load
+# Balancer Controller is installed on the cluster and you'd rather let it
+# manage the ALB instead of the Terraform-managed one.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: backend-api-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: instance
+    alb.ingress.kubernetes.io/healthcheck-path: /api/v1/health
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-api
+                port:
+                  number: 8080

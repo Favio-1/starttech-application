@@ -1,0 +1,13 @@
+# Node / React
+node_modules/
+frontend/build/
+frontend/.env
+npm-debug.log*
+
+# Go
+backend/server
+*.exe
+
+# OS/editor
+.DS_Store
+.vscode/
