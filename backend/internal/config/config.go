@@ -31,6 +31,16 @@ func LoadConfig(path string) (config Config, err error) {
 
 	viper.AutomaticEnv()
 
+	// Explicitly bind env vars with no default — Viper's Unmarshal()
+	// won't reliably read these from the environment otherwise.
+	viper.BindEnv("MONGO_URI")
+	viper.BindEnv("DB_NAME")
+	viper.BindEnv("JWT_SECRET_KEY")
+	viper.BindEnv("REDIS_ADDR")
+	viper.BindEnv("REDIS_PASSWORD")
+	viper.BindEnv("LOG_LEVEL")
+	viper.BindEnv("LOG_FORMAT")
+
 	// Set default values
 	viper.SetDefault("PORT", "8080")
 	viper.SetDefault("ENABLE_CACHE", false)
